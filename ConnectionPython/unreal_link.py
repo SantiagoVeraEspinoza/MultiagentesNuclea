@@ -27,6 +27,6 @@ def move():
 
 def main(pos_x, pos_y):
     args = see(pos_x, pos_y)
-    print(args)
+    print(args[0])
     move()
     return
