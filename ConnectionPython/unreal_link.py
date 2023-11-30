@@ -116,8 +116,8 @@ class TruckAgent(ap.Agent):
     #         return False
 
     def teoria(self, action):
-        print(self.thisTruck.posX, self.thisTruck.posY)
-        print(self.dist(LOAD_POS.x, LOAD_POS.y))
+        #print(self.thisTruck.posX, self.thisTruck.posY)
+        #print(self.dist(LOAD_POS.x, LOAD_POS.y))
 
         if(self.dist(LOAD_POS.x, LOAD_POS.y) > 300 and self.thisTruck.material == False and action == "Moverse"):
             return True
@@ -136,7 +136,7 @@ class TruckAgent(ap.Agent):
                 select = accion
 
                 break
-        print(select)
+        #print(select)
 
         if select != "":
             global speed
@@ -146,7 +146,7 @@ class TruckAgent(ap.Agent):
                 return
                 # self.model.grid.move_by(self, (1,1))
             if select == "Cargar":
-                print("Cargando material...")
+                #print("Cargando material...")
                 speed = 0  # No se mueve y en Unreal debe haber un condicional para que si la velocidad es 0 se espere 5 segundos y ya siga con el blueprint
                 return
                 # self.thisTruck.material = True
@@ -220,7 +220,8 @@ class CamaraAgente(ap.Agent):
 
       # Mostrar los camiones detectados
       def utility(self):
-        print(f'Camiones detectados: {self.detectionCount}')
+        pass
+        #print(f'Camiones detectados: {self.detectionCount}')
 
       def step(self):
           self.see()
@@ -304,7 +305,7 @@ def main(truckPosX, truckPosY, hasMaterial):
     #speed = 0
     model = TruckModel(parameters)
     model.run()
-    print(speed)
+    #print(speed)
     return speed
 
 # agenteCamion = TruckAgent()
