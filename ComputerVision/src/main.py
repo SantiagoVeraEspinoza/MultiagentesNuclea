@@ -14,7 +14,8 @@ detected_trucks = {}
 cwd = os.getcwd()
 
 # foto que vamos a procesar
-video_path = os.path.join(cwd, "..", "assets", "NucleaProyecto.mp4")
+video_path1 = os.path.join(cwd, "..", "assets", "entrada.mp4")
+video_path2 = os.path.join(cwd, "..", "assets", "centro_carga.mp4")
 
 # ubicacion del modelo base de yolo
 model_path = os.path.join(cwd, "..", "weights", "materials", "materials.pt")
@@ -23,7 +24,8 @@ model_path = os.path.join(cwd, "..", "weights", "materials", "materials.pt")
 output_path = os.path.join(cwd, "..", "output")
 
 # ubicacion de video de salida ya con anotaciones
-output_video_path = os.path.join(output_path, "NucleaTest.mp4")
+output_video_path1 = os.path.join(output_path, "entrada_out.mp4")
+output_video_path2 = os.path.join(output_path, "centro_carga_out.mp4")
 
 
 # cargar modelo
@@ -60,8 +62,8 @@ def callback(frame: np.ndarray, index: int) -> np.ndarray:
     return annotator.annotate(scene=frame.copy(), detections=detections, labels=labels)
 
 sv.process_video(
-    source_path=video_path,
-    target_path=output_video_path,
+    source_path=video_path1,
+    target_path=output_video_path1,
     callback=callback,
 )
 
@@ -69,8 +71,8 @@ entrance_trucks = len(detected_trucks)
 detected_trucks = {}
 
 sv.process_video(
-    source_path=video_path,
-    target_path=output_video_path,
+    source_path=video_path2,
+    target_path=output_video_path2,
     callback=callback,
 )
 

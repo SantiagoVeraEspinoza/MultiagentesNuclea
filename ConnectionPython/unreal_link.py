@@ -13,6 +13,7 @@ import agentpy as ap
 from owlready2 import *
 #import matplotlib.pyplot as plt
 import math
+import re
 #mport IPython
 
 class Pos:
@@ -91,13 +92,13 @@ class TruckAgent(ap.Agent):
         self.thisTruck.posX = self.model.p.truckPosX # Variable de Unreal
         self.thisTruck.posY = self.model.p.truckPosY # Variable de Unreal
         self.thisTruck.material = self.model.p.hasMaterial # Variable de Unreal
-        self.actions = ["Moverse", "Cargar", "Regresar"]
+        self.actions = ["Esperar a Otro", "Moverse", "Cargar", "Regresar"]
 
     def see(self):
         self.thisTruck.posX = self.model.p.truckPosX # (float) Variable de Unreal
         self.thisTruck.posY = self.model.p.truckPosY # (float) Variable de Unreal
         self.thisTruck.material = self.model.p.hasMaterial # (bool) Variable de Unreal
-        self.actions = ["Moverse", "Cargar", "Regresar"]
+        self.actions = ["Esperar a Otro", "Moverse", "Cargar", "Regresar"]
         #self.Zona = [Cliente() for c in self.model.clientes]
 
     def dist(self, posicionMaterialX, posicionMaterialY):
@@ -118,10 +119,18 @@ class TruckAgent(ap.Agent):
     def teoria(self, action):
         #print(self.thisTruck.posX, self.thisTruck.posY)
         #print(self.dist(LOAD_POS.x, LOAD_POS.y))
+        globalMessage = self.model.p.globalMessage
+        idCamion = self.model.p.idCamion
 
-        if(self.dist(LOAD_POS.x, LOAD_POS.y) > 300 and self.thisTruck.material == False and action == "Moverse"):
+        if globalMessage:
+            sender = re.search(r"\s\w+", globalMessage.split("\n")[1]).group()[1:].strip()
+            content = re.search(r"\s\w+", globalMessage.split("\n")[3]).group()[1:].strip()
+            
+            if content == "Cargando" and sender[1] != idCamion and not self.thisTruck.material and action == "Esperar a Otro":
+                return True
+        if(self.dist(LOAD_POS.x, LOAD_POS.y) > 300 and not self.thisTruck.material and action == "Moverse"):
             return True
-        if(self.dist(LOAD_POS.x, LOAD_POS.y) <= 300 and self.thisTruck.material == False and action == "Cargar"):
+        if(self.dist(LOAD_POS.x, LOAD_POS.y) <= 300 and not self.thisTruck.material and action == "Cargar"):
             return True
         if(self.thisTruck.material == True and action == "Regresar"):
             return True
@@ -134,12 +143,12 @@ class TruckAgent(ap.Agent):
         for accion in self.actions:
             if self.teoria(accion):
                 select = accion
-
                 break
-        #print(select)
 
-        if select != "":
+        if select:
             global speed
+            global message # Diferente al globalMessage de Unreal
+            message = ""
             if select == "Moverse":
                  # Se mueve hacia los materiales y va un poco más lento
                 speed = 1000
@@ -148,6 +157,12 @@ class TruckAgent(ap.Agent):
             if select == "Cargar":
                 #print("Cargando material...")
                 speed = 0  # No se mueve y en Unreal debe haber un condicional para que si la velocidad es 0 se espere 5 segundos y ya siga con el blueprint
+                message += "( Inform\n"
+                message += f"\t:sender C{self.model.p.idCamion}\n"
+                message += "\t:receiver All\n"
+                message += "\t:content Cargando\n"
+                message += "\t:query 1\n"
+                message += ")"
                 return
                 # self.thisTruck.material = True
                 # self.model.grid.move_by(self, (0,0))
@@ -156,6 +171,9 @@ class TruckAgent(ap.Agent):
                 speed = 700  # Se mueve hacia la salida y va un poco más lento porque va cargado
                 return
                 # self.model.grid.move_by(self, (-1,-1))
+            if select == "Esperar a Otro":
+                speed = 0
+                return
 
 
 
@@ -260,7 +278,7 @@ class TruckModel(ap.Model):
         self.space.remove_agents(self.Truck)
         #self.grid.remove_agents(self.material)
 
-def main(truckPosX, truckPosY, hasMaterial):
+def main(truckPosX, truckPosY, hasMaterial, globalMessage, idCamion):
     # onto = get_ontology("file:///content/ontologia_prueba.owl")
     # with onto:
     #   class Entidad(Thing):
@@ -295,7 +313,9 @@ def main(truckPosX, truckPosY, hasMaterial):
         "steps" : 1,
         "truckPosX": truckPosX,
         "truckPosY": truckPosY,
-        "hasMaterial": hasMaterial
+        "hasMaterial": hasMaterial,
+        "globalMessage": globalMessage,
+        "idCamion": idCamion
     }
 
 
@@ -306,7 +326,7 @@ def main(truckPosX, truckPosY, hasMaterial):
     model = TruckModel(parameters)
     model.run()
     #print(speed)
-    return speed
+    return speed, message
 
 # agenteCamion = TruckAgent()
 # agenteCamion.step()
